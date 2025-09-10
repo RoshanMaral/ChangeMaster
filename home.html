@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coin Change Solver</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: #fff;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 400px;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    input {
+      padding: 10px;
+      width: 80%;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: 1px solid #aaa;
+    }
+    button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .result {
+      margin-top: 20px;
+      text-align: left;
+    }
+    .algo {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f8f9fa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>💰 Coin Change Solver</h2>
+    <p>Available coins: [1, 2, 5, 10]</p>
+    <input type="number" id="amount" placeholder="Enter amount" min="1">
+    <br>
+    <button onclick="solveCoinChange()">Solve</button>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const coins = [1, 2, 5, 10];
+
+    // Greedy Algorithm
+    function greedyCoinChange(amount) {
+      let res = [];
+      let remaining = amount;
+      coins.sort((a,b) => b-a); // descending
+      for (let coin of coins) {
+        while (remaining >= coin) {
+          remaining -= coin;
+          res.push(coin);
+        }
+      }
+      return remaining === 0 ? res : null;
+    }
+
+    // DP Algorithm (Optimal)
+    function dpCoinChange(amount) {
+      let dp = new Array(amount+1).fill(Infinity);
+      let parent = new Array(amount+1).fill(-1);
+      dp[0] = 0;
+
+      for (let a = 1; a <= amount; a++) {
+        for (let coin of coins) {
+          if (a - coin >= 0 && dp[a-coin] + 1 < dp[a]) {
+            dp[a] = dp[a-coin] + 1;
+            parent[a] = coin;
+          }
+        }
+      }
+
+      if (dp[amount] === Infinity) return null;
+
+      let res = [];
+      let a = amount;
+      while (a > 0) {
+        res.push(parent[a]);
+        a -= parent[a];
+      }
+      return res;
+    }
+
+    // Main Solver
+    function solveCoinChange() {
+      const amount = parseInt(document.getElementById("amount").value);
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "";
+
+      if (isNaN(amount) || amount <= 0) {
+        resultDiv.innerHTML = "<p>Please enter a valid amount!</p>";
+        return;
+      }
+
+      let greedy = greedyCoinChange(amount);
+      let dp = dpCoinChange(amount);
+
+      if (greedy) {
+        resultDiv.innerHTML += `
+          <div class="algo">
+            <b>Greedy Algorithm:</b><br>
+            Coins used: ${greedy.join(", ")}<br>
+            Total coins: ${greedy.length}
+          </div>`;
+      } else {
+        resultDiv.innerHTML += `<div class="algo"><b>Greedy Algorithm:</b> No solution</div>`;
+      }
+
+      if (dp) {
+        resultDiv.innerHTML += `
+          <div class="algo">
+            <b>DP Optimal Solution:</b><br>
+            Coins used: ${dp.join(", ")}<br>
+            Total coins: ${dp.length}
+          </div>`;
+      } else {
+        resultDiv.innerHTML += `<div class="algo"><b>DP Optimal Solution:</b> No solution</div>`;
+      }
+    }
+  </script>
+</body>
+</html>
